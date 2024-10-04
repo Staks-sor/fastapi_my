@@ -49,7 +49,7 @@ def patch_change_uniq(
             if name is not None and name != "string":
                 hotel["name"] = name
 
-            return {"status": "ok", "updated_hotel\n": hotel}
+            return {"status": "ok", "updated_hotel": hotel}
 
     # Если отель с таким id не найден
     raise HTTPException(status_code=404, detail="Hotel not found")

@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI, Query, Body, HTTPException
 from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
@@ -14,13 +14,44 @@ hotels = [
 
 
 @app.put("/hotels/{hotel_id}")
-def put_change_all():
-    ...
+def put_change_all(
+        hotel_id: int,
+        title: str = Body(embed=True),
+        name: str = Body(embed=True)
+):
+    global hotels
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            hotel["title"] = title
+            hotel["name"] = name
+            return {"status": "ok", "updated_hotel": hotel}
+
+    # Если отель с таким id не найден
+    raise HTTPException(status_code=404, detail="Hotel not found")
 
 
+# PATCH: Частичное обновление информации об отеле
 @app.patch("/hotels/{hotel_id}")
-def patch_change_uniq():
-    ...
+def patch_change_uniq(
+        hotel_id: int,
+        title: str | None = Body(None, embed=True),
+        name: str | None = Body(None, embed=True)
+):
+    global hotels
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            # Обновляем только если значение не None и не равно "string"
+            if title is not None and title != "string":
+                hotel["title"] = title
+            if name is not None and name != "string":
+                hotel["name"] = name
+
+            return {"status": "ok", "updated_hotel": hotel}
+
+    # Если отель с таким id не найден
+    raise HTTPException(status_code=404, detail="Hotel not found")
+
+
 
 
 @app.post("/hotels")

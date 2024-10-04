@@ -13,10 +13,9 @@ hotels = [
 ]
 
 
-# Задание  №1
-
-@app.put("/hotels/{hotel_id}")
+# Задание №1
 # Put: Полное изменение
+@app.put("/hotels/{hotel_id}")
 def put_change_all(
         hotel_id: int,
         title: str = Body(embed=True),
@@ -37,8 +36,8 @@ def put_change_all(
 @app.patch("/hotels/{hotel_id}")
 def patch_change_uniq(
         hotel_id: int,
-        title: str | None = Body(None, embed=True),
-        name: str | None = Body(None, embed=True)
+        title: str | None = Body(),
+        name: str | None = Body()
 ):
     global hotels
     for hotel in hotels:

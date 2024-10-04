@@ -13,7 +13,10 @@ hotels = [
 ]
 
 
+# Задание  №1
+
 @app.put("/hotels/{hotel_id}")
+# Put: Полное изменение
 def put_change_all(
         hotel_id: int,
         title: str = Body(embed=True),
@@ -46,14 +49,13 @@ def patch_change_uniq(
             if name is not None and name != "string":
                 hotel["name"] = name
 
-            return {"status": "ok", "updated_hotel": hotel}
+            return {"status": "ok", "updated_hotel\n": hotel}
 
     # Если отель с таким id не найден
     raise HTTPException(status_code=404, detail="Hotel not found")
 
 
-
-
+# Конец первого задания.
 @app.post("/hotels")
 def create_hotel(
         title: str = Body(embed=True),

@@ -1,6 +1,7 @@
 from fastapi import Query, HTTPException, APIRouter, Body
 from typing_extensions import Doc
 
+
 from schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
@@ -8,6 +9,16 @@ router = APIRouter(prefix="/hotels", tags=['Отели'])
 hotels = [
     {"id": 1, "title": "Sochi", "name": "sochi"},
     {"id": 2, "title": "Dubai", "name": "dubai"},
+    {"id": 3, "title": "Казань", "name": "Kazan"},
+    {"id": 4, "title": "Москва", "name": "Moscow"},
+    {"id": 5, "title": "Питер", "name": "ST.Petersburg"},
+    {"id": 6, "title": "Мальдивы", "name": "Maldive"},
+    {"id": 7, "title": "Новгород", "name": "Novgorod"},
+    {"id": 8, "title": "Вьетнам", "name": "Vietnam"},
+    {"id": 9, "title": "Египет", "name": "Egpt"},
+    {"id": 10, "title": "Турция", "name": "Turchin"},
+    {"id": 11, "title": "Тунис", "name": "Tunis"},
+
 ]
 
 
@@ -101,6 +112,8 @@ def delete_hotels(hotel_id: int):
 def get_hotels(
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля"),
+        page: int = Query(10, description="Количество отелей на странице"),
+        per_page: int = Query(0, description="Количество пропущенных отелей"),
 ):
     hotels_ = []
     for hotel in hotels:
@@ -109,4 +122,12 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
-    return hotels_
+
+    paginated_hotels = hotels_[per_page: per_page + page]
+    # Общее количество отелей после фильтрации
+    return {
+        "total": len(hotels_),
+        "limit": page,
+        "offset": per_page,
+        "data": paginated_hotels
+    }

@@ -1,1 +1,2 @@
-# fastapi_my
+# fastapi_my_TEST
+Данный проект тестовое задание. 

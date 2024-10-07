@@ -1,7 +1,7 @@
 from fastapi import Query, HTTPException, APIRouter, Body
-from typing_extensions import Doc
 
 
+from dependencies import PaginationDep
 from schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
@@ -110,10 +110,11 @@ def delete_hotels(hotel_id: int):
             summary="Получение данных об отелях",
             description="<h1>Тут мы получаем данные об отелях</h1>", )
 def get_hotels(
+        pagination: PaginationDep,
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля"),
-        page: int = Query(10, description="Количество отелей на странице"),
-        per_page: int = Query(0, description="Количество пропущенных отелей"),
+
+
 ):
     hotels_ = []
     for hotel in hotels:
@@ -122,12 +123,8 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
+    if pagination.page and pagination.per_page:
+        return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
 
-    paginated_hotels = hotels_[per_page: per_page + page]
-    # Общее количество отелей после фильтрации
-    return {
-        "total": len(hotels_),
-        "limit": page,
-        "offset": per_page,
-        "data": paginated_hotels
-    }
+    return hotels_
+

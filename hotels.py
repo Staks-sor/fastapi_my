@@ -1,7 +1,6 @@
-from fastapi import Query, Body, HTTPException, APIRouter
-import time
-import asyncio
-import threading
+from fastapi import Query, HTTPException, APIRouter
+
+from schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
 
@@ -16,17 +15,18 @@ hotels = [
 
 # Задание №1
 # Put: Полное изменение
-@router.put("/{hotel_id}")
+@router.put("/{hotel_id}",
+            summary="Полное обновление данных об отеле",
+            description="<h1>Тут мы обновляем данные полностью</h1>", )
 def put_change_all(
         hotel_id: int,
-        title: str = Body(embed=True),
-        name: str = Body(embed=True)
+        hotel_data: Hotel,
 ):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:
-            hotel["title"] = title
-            hotel["name"] = name
+            hotel["title"] = hotel_data.title
+            hotel["name"] = hotel_data.name
             return {"status": "ok", "updated_hotel": hotel}
 
     # Если отель с таким id не найден
@@ -41,17 +41,17 @@ def put_change_all(
 )
 def patch_change_uniq(
         hotel_id: int,
-        title: str | None = Body(),
-        name: str | None = Body()
+        hotel_data: HotelPATCH
+
 ):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:
             # Обновляем только если значение не None и не равно "string"
-            if title is not None and title != "string":
-                hotel["title"] = title
-            if name is not None and name != "string":
-                hotel["name"] = name
+            if hotel_data.title is not None and hotel_data.title != "string":
+                hotel["title"] = hotel_data.title
+            if hotel_data.name is not None and hotel_data.name != "string":
+                hotel["name"] = hotel_data.name
 
             return {"status": "ok", "updated_hotel": hotel}
 
@@ -60,19 +60,24 @@ def patch_change_uniq(
 
 
 # Конец первого задания.
-@router.post("")
+@router.post("",
+             summary="Добавление отеля",
+             description="<h1>Тут мы добовляем отель</h1>", )
 def create_hotel(
-        title: str = Body(embed=True),
+        hotel_data: Hotel
 ):
     global hotels
     hotels.append({
         "id": hotels[-1]["id"] + 1,
-        "title": title
+        "title": hotel_data.title,
+        "name": hotel_data.name,
     })
     return {"status": "ok"}
 
 
-@router.delete("/{hotel_id}")
+@router.delete("/{hotel_id}",
+               summary="Удаление отеля",
+               description="<h1>Тут мы удаляем отель</h1>", )
 def delete_hotels(hotel_id: int):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
@@ -80,7 +85,9 @@ def delete_hotels(hotel_id: int):
     return {"status": "ok"}
 
 
-@router.get("")
+@router.get("",
+            summary="Получение данных об отелях",
+            description="<h1>Тут мы получаем данные об отелях</h1>", )
 def get_hotels(
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля"),

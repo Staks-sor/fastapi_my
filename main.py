@@ -1,14 +1,16 @@
 import uvicorn
-from fastapi import FastAPI, Query, Body, HTTPException
+from fastapi import FastAPI
 from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
 )
 
 from hotels import router as router_hotels
+from rooms import router as router_rooms
 
 app = FastAPI(docs_url=None, redoc_url=None)
 app.include_router(router_hotels)
+app.include_router(router_rooms)
 
 
 @app.get("/docs", include_in_schema=False)

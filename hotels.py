@@ -1,4 +1,5 @@
-from fastapi import Query, HTTPException, APIRouter
+from fastapi import Query, HTTPException, APIRouter, Body
+from typing_extensions import Doc
 
 from schemas.hotels import Hotel, HotelPATCH
 
@@ -64,7 +65,16 @@ def patch_change_uniq(
              summary="Добавление отеля",
              description="<h1>Тут мы добовляем отель</h1>", )
 def create_hotel(
-        hotel_data: Hotel
+        hotel_data: Hotel = Body(openapi_examples={
+            "1": {"summary": "Сочи", "value": {
+            "title": "Отель Сочи 5 звезд у моря",
+            "name": "sochi_u_morya",
+        }},
+            "2": {"summary": "Дубай", "value": {
+                "title": "Отель Дубаи у фонтана",
+                "name": "dubai_fontane",
+            }},
+        })
 ):
     global hotels
     hotels.append({

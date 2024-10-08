@@ -5,14 +5,17 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 
+import sys
+from pathlib import Path
 
-from hotels import router as router_hotels
-from rooms import router as router_rooms
+sys.path.append(str(Path(__file__).parent.parent))
+
+from src.api.hotels import router as router_hotels
+from src.api.rooms import router as router_rooms
 
 app = FastAPI(docs_url=None, redoc_url=None)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
-
 
 
 @app.get("/docs", include_in_schema=False)

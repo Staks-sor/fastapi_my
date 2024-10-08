@@ -1,4 +1,4 @@
-from fastapi import Query, HTTPException, APIRouter
+from fastapi import Query, APIRouter
 
 router = APIRouter(prefix="/rooms", tags=['Комнаты'])
 

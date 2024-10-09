@@ -9,3 +9,7 @@ class RoomsORM(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     hotel_id: Mapped[int] = mapped_column(ForeignKey("hotels.id"))
+    title: Mapped[str] = mapped_column()
+    description: Mapped[str | None]
+    price: Mapped[int] = mapped_column()
+    quantity: Mapped[int] = mapped_column()

@@ -1,9 +1,9 @@
 from fastapi import Query, HTTPException, APIRouter, Body
 
-from sqlalchemy import insert
+from sqlalchemy import insert, select, func
 
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
+from src.database import async_session_maker
 from src.models.hotels import HotelsORM
 from src.schemas.hotels import Hotel, HotelPATCH
 
@@ -94,23 +94,40 @@ def delete_hotels(hotel_id: int):
     return {"status": "ok"}
 
 
+# Задание № 4 Фильтрация по подстроке
 @router.get("",
             summary="Получение данных об отелях",
             description="<h1>Тут мы получаем данные об отелях</h1>", )
-def get_hotels(
+async def get_hotels(
         pagination: PaginationDep,
-        id: int | None = Query(None, description="Айди отеля"),
+        location: str | None = Query(None, description="Адрес отеля"),
         title: str | None = Query(None, description="Название отеля"),
 
 ):
-    hotels_ = []
-    for hotel in hotels:
-        if id and hotel["id"] != id:
-            continue
-        if title and hotel["title"] != title:
-            continue
-        hotels_.append(hotel)
-    if pagination.page and pagination.per_page:
-        return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
+    per_page = pagination.per_page or 5
+    async with async_session_maker() as session:
+        # Так запрос выглядит через SQL, Для универсальности привел в нижний регистр.
+        """ select location, title from hotels 
+            where lower(hotels."location") like lower('%1%')
+            and lower(hotels."title") like lower('%Y%'); """
+        query = select(HotelsORM)
+        if location:
+            query = query.filter(func.lower(HotelsORM.location).like(func.lower(f'%{location}%')))
+        if title:
+            query = query.filter(func.lower(HotelsORM.title).like(func.lower(f'%{title}%')))
 
-    return hotels_
+        query = (
+            query
+            .limit(per_page)
+            .offset(per_page * (pagination.page - 1))
+        )
+        result = await session.execute(query)
+
+        hotels = result.scalars().all()
+        # print(type(hotels), hotels)
+        if not hotels:
+            return "Совпадений нет"
+        return hotels
+
+    # if pagination.page and pagination.per_page:
+    #     return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]

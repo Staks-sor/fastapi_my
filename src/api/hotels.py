@@ -112,9 +112,9 @@ async def get_hotels(
             and lower(hotels."title") like lower('%Y%'); """
         query = select(HotelsORM)
         if location:
-            query = query.filter(func.lower(HotelsORM.location).like(func.lower(f'%{location}%')))
+            query = query.filter(func.lower(HotelsORM.location).like(func.lower(f'%{location.strip()}%')))
         if title:
-            query = query.filter(func.lower(HotelsORM.title).like(func.lower(f'%{title}%')))
+            query = query.filter(func.lower(HotelsORM.title).like(func.lower(f'%{title.strip()}%')))
 
         query = (
             query

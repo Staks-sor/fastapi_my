@@ -1,28 +1,13 @@
 from fastapi import Query, HTTPException, APIRouter, Body
 
+from sqlalchemy import insert
 
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker, engine
+from src.models.hotels import HotelsORM
 from src.schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
-
-hotels = [
-    {"id": 1, "title": "Sochi", "name": "sochi"},
-    {"id": 2, "title": "Dubai", "name": "dubai"},
-    {"id": 3, "title": "Казань", "name": "Kazan"},
-    {"id": 4, "title": "Москва", "name": "Moscow"},
-    {"id": 5, "title": "Питер", "name": "ST.Petersburg"},
-    {"id": 6, "title": "Мальдивы", "name": "Maldive"},
-    {"id": 7, "title": "Новгород", "name": "Novgorod"},
-    {"id": 8, "title": "Вьетнам", "name": "Vietnam"},
-    {"id": 9, "title": "Египет", "name": "Egpt"},
-    {"id": 10, "title": "Турция", "name": "Turchin"},
-    {"id": 11, "title": "Тунис", "name": "Tunis"},
-
-]
-
-
-# Проверка работы для понимания асинхронных и синхронных функций
 
 
 # Задание №1
@@ -72,27 +57,30 @@ def patch_change_uniq(
 
 
 # Конец первого задания.
+
+
 @router.post("",
              summary="Добавление отеля",
              description="<h1>Тут мы добовляем отель</h1>", )
-def create_hotel(
+async def create_hotel(
         hotel_data: Hotel = Body(openapi_examples={
             "1": {"summary": "Сочи", "value": {
-            "title": "Отель Сочи 5 звезд у моря",
-            "name": "sochi_u_morya",
-        }},
+                "title": "Отель Сочи 5 звезд у моря",
+                "location": "ул. Моря, 1",
+            }},
             "2": {"summary": "Дубай", "value": {
                 "title": "Отель Дубаи у фонтана",
-                "name": "dubai_fontane",
+                "location": "ул. Шейха, 2",
             }},
         })
 ):
-    global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": hotel_data.title,
-        "name": hotel_data.name,
-    })
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
+        # Как сделать просмотр запроса с целью дебага или понимания какой запрос улетел от алхимии
+        # print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        await session.execute(add_hotel_stmt)
+        await session.commit()
+
     return {"status": "ok"}
 
 
@@ -114,7 +102,6 @@ def get_hotels(
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля"),
 
-
 ):
     hotels_ = []
     for hotel in hotels:
@@ -124,7 +111,6 @@ def get_hotels(
             continue
         hotels_.append(hotel)
     if pagination.page and pagination.per_page:
-        return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
+        return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
 
     return hotels_
-

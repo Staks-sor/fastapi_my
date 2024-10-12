@@ -10,13 +10,28 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-
 from src.api.hotels import router as router_hotels
 from src.api.rooms import router as router_rooms
 
+app = FastAPI(docs_url=None, redoc_url=None,
+              title="Мое приложение",  # Укажите название вашего API
+              description="""
+## Отели API
 
+Добро пожаловать в **Отели API**.
 
-app = FastAPI(docs_url=None, redoc_url=None)
+### Возможности:
+- 🔍 **Поиск по местоположению**: Ищите отели по городам или странам.
+- 💲 **Фильтрация по цене**: Удобное сравнение стоимости отелей.
+- ⭐ **Отзывы гостей**: Ознакомьтесь с рейтингами и отзывами, чтобы сделать лучший выбор.
+
+---
+
+**Автор**: Staks.
+""",
+              version="0.0.3",  # Укажите версию API
+              openapi_url="/custom_openapi.json"  # Измените URL для OpenAPI спецификации
+              )
 app.include_router(router_hotels)
 app.include_router(router_rooms)
 

@@ -16,19 +16,23 @@ router = APIRouter(prefix="/hotels", tags=['Отели'])
 @router.put("/{hotel_id}",
             summary="Полное обновление данных об отеле",
             description="<h1>Тут мы обновляем данные полностью</h1>", )
-def put_change_all(
+async def put_change_all(
         hotel_id: int,
-        hotel_data: Hotel,
+        hotel_data: Hotel = Body(),
 ):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = hotel_data.title
-            hotel["name"] = hotel_data.name
-            return {"status": "ok", "updated_hotel": hotel}
+    async with async_session_maker() as session:
+        # Создаем репозиторий и передаем сессию
+        hotels_repo = HotelsRepository(session)
 
-    # Если отель с таким id не найден
-    raise HTTPException(status_code=404, detail="Hotel not found")
+        # Пробуем изменить отель с данным ID
+        try:
+            change_hotel = await hotels_repo.edit(hotel_data, id=hotel_id)
+            await session.commit()
+        except HTTPException as e:
+            raise e  # Перехватываем ошибку и возвращаем 404 если отель не найден
+
+        # Возвращаем статус OK и обновленные данные
+        return {"status": "OK", "data": change_hotel}
 
 
 # PATCH: Частичное обновление информации об отеле
@@ -64,8 +68,6 @@ def patch_change_uniq(
              summary="Добавление отеля",
              description="<h1>Тут мы добовляем отель</h1>", )
 async def create_hotel(
-        location,
-        title,
         hotel_data: Hotel = Body(openapi_examples={
             "1": {"summary": "Сочи", "value": {
                 "title": "Отель Сочи 5 звезд у моря",
@@ -78,14 +80,10 @@ async def create_hotel(
         })
 ):
     async with async_session_maker() as session:
-        new_hotel = await HotelsRepository(session).add(
-            location=location,
-            title=title,
-
-        )
+        new_hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
-        return {"status": "OK", "data": new_hotel}
-        # return .compile(engine, compile_kwargs={"literal_binds": True})
+    return {"status": "OK", "data": new_hotel}
+    # return .compile(engine, compile_kwargs={"literal_binds": True})
 
 
 # Конец 5 задания
@@ -93,8 +91,7 @@ async def create_hotel(
                summary="Удаление отеля",
                description="<h1>Тут мы удаляем отель</h1>", )
 def delete_hotels(hotel_id: int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    ...
 
     return {"status": "ok"}
 

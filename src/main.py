@@ -14,7 +14,7 @@ from src.api.hotels import router as router_hotels
 from src.api.rooms import router as router_rooms
 
 app = FastAPI(docs_url=None, redoc_url=None,
-              title="Мое приложение",  # Укажите название вашего API
+              title="Мое приложение",
               description="""
 ## Отели API
 

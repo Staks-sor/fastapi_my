@@ -29,3 +29,14 @@ class HotelsRepository(BaseRepository):
 
         return result.scalars().all()
 
+    async def add(
+            self,
+            location,
+            title,
+    ):
+
+        new_hotel = HotelsORM(location=location, title=title)
+
+        # Добавляем новый объект в сессию
+        self.session.add(new_hotel)
+

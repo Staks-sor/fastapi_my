@@ -3,7 +3,7 @@ from fastapi import Query, HTTPException, APIRouter, Body
 from sqlalchemy import insert, select, func
 
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker
+from src.database import async_session_maker, engine
 from src.models.hotels import HotelsORM
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
@@ -59,11 +59,13 @@ def patch_change_uniq(
 
 # Конец первого задания.
 
-
+# Задание № 5
 @router.post("",
              summary="Добавление отеля",
              description="<h1>Тут мы добовляем отель</h1>", )
 async def create_hotel(
+        location,
+        title,
         hotel_data: Hotel = Body(openapi_examples={
             "1": {"summary": "Сочи", "value": {
                 "title": "Отель Сочи 5 звезд у моря",
@@ -76,15 +78,17 @@ async def create_hotel(
         })
 ):
     async with async_session_maker() as session:
-        add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
-        # Как сделать просмотр запроса с целью дебага или понимания какой запрос улетел от алхимии
-        # print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stmt)
+        new_hotel = await HotelsRepository(session).add(
+            location=location,
+            title=title,
+
+        )
         await session.commit()
+        return "OK"
+        # return new_hotel.compile(engine, compile_kwargs={"literal_binds": True})
 
-    return {"status": "ok"}
 
-
+# Конец 5 задания
 @router.delete("/{hotel_id}",
                summary="Удаление отеля",
                description="<h1>Тут мы удаляем отель</h1>", )
@@ -113,6 +117,3 @@ async def get_hotels(
             limit=per_page,
             offset=per_page * (pagination.page - 1)
         )
-
-
-

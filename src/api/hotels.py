@@ -84,8 +84,8 @@ async def create_hotel(
 
         )
         await session.commit()
-        return "OK"
-        # return new_hotel.compile(engine, compile_kwargs={"literal_binds": True})
+        return {"status": "OK", "data": new_hotel}
+        # return .compile(engine, compile_kwargs={"literal_binds": True})
 
 
 # Конец 5 задания

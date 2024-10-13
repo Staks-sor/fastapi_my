@@ -5,6 +5,7 @@ from sqlalchemy import insert, select, func
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
 from src.models.hotels import HotelsORM
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
@@ -106,28 +107,12 @@ async def get_hotels(
 ):
     per_page = pagination.per_page or 5
     async with async_session_maker() as session:
-        # Так запрос выглядит через SQL, Для универсальности привел в нижний регистр.
-        """ select location, title from hotels 
-            where lower(hotels."location") like lower('%1%')
-            and lower(hotels."title") like lower('%Y%'); """
-        query = select(HotelsORM)
-        if location:
-            query = query.filter(func.lower(HotelsORM.location).contains(func.lower(location.strip())))
-        if title:
-            query = query.filter(func.lower(HotelsORM.title).contains(func.lower(title.strip())))
-
-        query = (
-            query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1))
+        return await HotelsRepository(session).get_all(
+            location=location,
+            title=title,
+            limit=per_page,
+            offset=per_page * (pagination.page - 1)
         )
-        result = await session.execute(query)
 
-        hotels = result.scalars().all()
-        # print(type(hotels), hotels)
-        if not hotels:
-            return "Совпадений нет"
-        return hotels
 
-    # if pagination.page and pagination.per_page:
-    #     return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
+

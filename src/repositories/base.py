@@ -24,19 +24,18 @@ class BaseRepository:
         result = await self.session.execute(add_data_stmt)
         return result.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by) -> None:
+    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
         update_stmt = (
             update(self.model)
             .filter_by(**filter_by)
-            .values(**data.model_dump())  # Передаем данные для обновления
+            .values(**data.model_dump(exclude_unset=exclude_unset))  # Передаем данные для обновления
         )
-        query = select(self.model).filter_by(**filter_by)
-        result = await self.session.execute(query)
-        hotel = result.scalars().one_or_none()
-
-        # Если объект не найден, выбрасываем исключение 404
-        if hotel is None:
-            raise HTTPException(status_code=404, detail="Hotel not found")
+        # query = select(self.model).filter_by(**filter_by)
+        # result = await self.session.execute(query)
+        # hotel = result.scalars().one_or_none()
+        #
+        # if hotel is None:
+        #     raise HTTPException(status_code=404, detail="Hotel not found")
         await self.session.execute(update_stmt)
 
     async def delete(self, **filter_by):

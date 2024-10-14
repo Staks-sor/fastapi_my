@@ -24,25 +24,29 @@ class BaseRepository:
         result = await self.session.execute(add_data_stmt)
         return result.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by):
-        put_data_stmt = (
+    async def edit(self, data: BaseModel, **filter_by) -> None:
+        update_stmt = (
             update(self.model)
+            .filter_by(**filter_by)
             .values(**data.model_dump())  # Передаем данные для обновления
-            .returning(self.model)  # Возвращаем обновленную запись
-            .filter_by(**filter_by)  # Применяем фильтрацию по ID или другим критериям
         )
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        hotel = result.scalars().one_or_none()
 
-        # Выполняем запрос
-        result = await self.session.execute(put_data_stmt)
-
-        # Получаем обновленные данные
-        updated_hotel = result.scalars().one_or_none()
-
-        # Если не найден отель с заданными параметрами, выбрасываем исключение
-        if not updated_hotel:
+        # Если объект не найден, выбрасываем исключение 404
+        if hotel is None:
             raise HTTPException(status_code=404, detail="Hotel not found")
+        await self.session.execute(update_stmt)
 
-        return updated_hotel
+    async def delete(self, **filter_by):
+        delete_stmt = delete(self.model).filter_by(**filter_by)
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        hotel = result.scalars().one_or_none()
 
-    async def delete(self, data: BaseModel, **filter_by):
-        ...
+        # Если объект не найден, выбрасываем исключение 404
+        if hotel is None:
+            raise HTTPException(status_code=404, detail="Hotel not found")
+        await self.session.execute(delete_stmt)
+        return delete_stmt

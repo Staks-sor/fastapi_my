@@ -6,7 +6,7 @@ from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsORM
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=['Отели'])
 
@@ -49,7 +49,7 @@ async def patch_change_uniq(
              summary="Добавление отеля",
              description="<h1>Тут мы добовляем отель</h1>", )
 async def create_hotel(
-        hotel_data: Hotel = Body(openapi_examples={
+        hotel_data: HotelAdd = Body(openapi_examples={
             "1": {"summary": "Сочи", "value": {
                 "title": "Отель Сочи 5 звезд у моря",
                 "location": "ул. Моря, 1",

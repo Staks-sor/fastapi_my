@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from src.api.hotels import router as router_hotels
 from src.api.rooms import router as router_rooms
+from src.api.auth import router as router_auth
 
 app = FastAPI(docs_url=None, redoc_url=None,
               title="Мое приложение",
@@ -32,6 +33,7 @@ app = FastAPI(docs_url=None, redoc_url=None,
               version="0.0.3",  # Укажите версию API
               openapi_url="/custom_openapi.json"  # Измените URL для OpenAPI спецификации
               )
+app.include_router(router_auth)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
 

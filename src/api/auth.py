@@ -34,6 +34,7 @@ async def login_user(
         if not AuthService().verify_password(data.password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Пароль не верный")
         access_token = AuthService().create_access_token({"user_id": user.id})
+        response.set_cookie("access_token", access_token)
         return {"access_token": access_token}
 
 
@@ -42,5 +43,4 @@ async def only_auth(
         request: Request,
 ):
     access_token = request.cookies.get("access_token")
-    print(access_token)
-    return access_token or None
+    return access_token

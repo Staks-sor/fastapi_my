@@ -41,6 +41,6 @@ async def login_user(
 async def only_auth(
         request: Request,
 ):
-    get_request_cookie = request.cookies.get("access_token")
-    print(get_request_cookie)
-    return get_request_cookie
+    access_token = request.cookies.get("access_token")
+    print(access_token)
+    return access_token or None

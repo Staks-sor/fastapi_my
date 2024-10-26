@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response
-from starlette.requests import Request
 
+
+from src.api.dependencies import UserIdDep
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
 from src.schemas.users import UserRequestAdd, UserAdd
@@ -38,10 +39,18 @@ async def login_user(
         return {"access_token": access_token}
 
 
-@router.get("/only_auth")
-async def only_auth(
-        request: Request,
-):
-    access_token = request.cookies.get("access_token")
-    data = AuthService().encode_token(access_token)
-    return data
+@router.get(
+    "/me",
+    summary="Получение куки пользователя",
+    description="<h1>Тут мы получаем инфу о пользователе</h1>",
+)
+async def get_me(user_id: UserIdDep,):
+    async with async_session_maker() as session:
+        user = await UsersRepository(session).get_one_or_none(id=user_id)
+        return user
+
+
+
+
+
+

@@ -43,4 +43,5 @@ async def only_auth(
         request: Request,
 ):
     access_token = request.cookies.get("access_token")
-    return access_token
+    data = AuthService().encode_token(access_token)
+    return data

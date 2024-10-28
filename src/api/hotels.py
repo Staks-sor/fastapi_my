@@ -1,10 +1,7 @@
-from fastapi import Query, HTTPException, APIRouter, Body
-
-from sqlalchemy import insert, select, func
+from fastapi import Query, APIRouter, Body
 
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
-from src.models.hotels import HotelsORM
+from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 
@@ -64,7 +61,6 @@ async def create_hotel(
         new_hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
     return {"status": "OK", "data": new_hotel}
-    # return .compile(engine, compile_kwargs={"literal_binds": True})
 
 
 @router.delete("/{hotel_id}",

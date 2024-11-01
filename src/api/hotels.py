@@ -1,6 +1,6 @@
-from fastapi import Query, APIRouter, Body
+from fastapi import Query, APIRouter, Body, HTTPException
 
-from src.api.dependencies import PaginationDep
+from src.api.dependencies import PaginationDep, DBDep
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
@@ -79,13 +79,13 @@ async def delete_hotels(hotel_id: int):
             description="<h1>Тут мы получаем данные об отелях</h1>", )
 async def get_hotels(
         pagination: PaginationDep,
+        db: DBDep,
         location: str | None = Query(None, description="Адрес отеля"),
         title: str | None = Query(None, description="Название отеля"),
 
 ):
     per_page = pagination.per_page or 5
-    async with async_session_maker() as session:
-        return await HotelsRepository(session).get_all(
+    return await db.hotels.get_all(
             location=location,
             title=title,
             limit=per_page,
@@ -96,6 +96,5 @@ async def get_hotels(
 @router.get("/{hotel_id}",
             summary="Получение одного отеля",
             description="<h1>Тут мы получаем один отель</h1>", )
-async def get_hotels(hotel_id: int):
-    async with async_session_maker() as session:
-        return await HotelsRepository(session).get_one_or_none(id=hotel_id)
+async def get_hotels(hotel_id: int, db: DBDep):
+    return await db.hotels.get_one_or_none(id=hotel_id)

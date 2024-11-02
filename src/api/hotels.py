@@ -76,14 +76,15 @@ async def put_change_all(
     description="<h1>Тут мы частично обновляем данные об отеле: можно менять один из параметров</h1>",
 )
 async def patch_change_uniq(
+        db: DBDep,
         hotel_id: int,
         hotel_data: HotelPATCH
 
 ):
     async with async_session_maker() as session:
         # Создаем репозиторий и передаем сессию
-        await HotelsRepository(session).edit(hotel_data, exclude_unset=True, id=hotel_id)
-        await session.commit()
+        await db.hotels.edit(hotel_data, exclude_unset=True, id=hotel_id)
+        await db.session.commit()
         # Возвращаем статус OK и обновленные данные
         return {"status": "OK"}
 
@@ -91,9 +92,9 @@ async def patch_change_uniq(
 @router.delete("/{hotel_id}",
                summary="Удаление отеля",
                description="<h1>Тут мы удаляем отель</h1>", )
-async def delete_hotels(hotel_id: int):
+async def delete_hotels(db: DBDep, hotel_id: int):
     async with async_session_maker() as session:
-        await HotelsRepository(session).delete(id=hotel_id)
-        await session.commit()
+        await db.hotels.delete(id=hotel_id)
+        await db.session.commit()
 
     return {"status": "ok"}

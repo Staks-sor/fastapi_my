@@ -93,8 +93,6 @@ async def patch_change_uniq(
                summary="Удаление отеля",
                description="<h1>Тут мы удаляем отель</h1>", )
 async def delete_hotels(db: DBDep, hotel_id: int):
-    async with async_session_maker() as session:
-        await db.hotels.delete(id=hotel_id)
-        await db.session.commit()
-
+    await db.hotels.delete(id=hotel_id)
+    await db.session.commit()
     return {"status": "ok"}

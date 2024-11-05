@@ -38,6 +38,10 @@ class BaseRepository:
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=exclude_unset))  # Передаем данные для обновления
         )
+        result = await self.session.execute(update_stmt)
+
+        if result.rowcount == 0:
+            raise HTTPException(status_code=402, detail="Такого ID нет.")
 
         await self.session.execute(update_stmt)
 

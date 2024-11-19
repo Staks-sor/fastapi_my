@@ -8,12 +8,12 @@ from fastapi.openapi.docs import (
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent))
-
 from src.api.hotels import router as router_hotels
 from src.api.rooms import router as router_rooms
 from src.api.auth import router as router_auth
 from src.api.bookings import router as router_bookings
+
+sys.path.append(str(Path(__file__).parent.parent))
 
 app = FastAPI(docs_url=None, redoc_url=None,
               title="Мое приложение",

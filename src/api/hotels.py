@@ -23,16 +23,13 @@ async def get_hotels(
 
 ):
     per_page = pagination.per_page or 5
-    # return await db.hotels.get_all(
-    #     location=location,
-    #     title=title,
-    #     limit=per_page,
-    #     offset=per_page * (pagination.page - 1)
-    # )
-
     return await db.hotels.get_filtered_by_time(
         date_from=date_from,
         date_to=date_to,
+        location=location,
+        title=title,
+        limit=per_page,
+        offset=per_page * (pagination.page - 1)
     )
 
 
@@ -72,7 +69,6 @@ async def put_change_all(
         hotel_id: int,
         hotel_data: Hotel = Body(),
 ):
-
     await db.hotels.edit(hotel_data, id=hotel_id)
     await db.session.commit()
     return {"status": "OK"}

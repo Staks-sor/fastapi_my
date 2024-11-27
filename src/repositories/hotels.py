@@ -43,10 +43,3 @@ class HotelsRepository(BaseRepository):
 
         return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
 
-
-        hotels_ids_to_get = (
-            select(RoomsORM.hotel_id)
-            .select_from(RoomsORM)
-            .filter(RoomsORM.id.in_(rooms_ids_to_get))
-        )
-

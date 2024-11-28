@@ -39,8 +39,9 @@ app = FastAPI(docs_url=None, redoc_url=None,
 app.include_router(router_auth)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
-app.include_router(router_bookings)
 app.include_router(router_facilities)
+app.include_router(router_bookings)
+
 
 
 @app.get("/docs", include_in_schema=False)

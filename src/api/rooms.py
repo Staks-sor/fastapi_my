@@ -5,6 +5,7 @@ from fastapi import Query, APIRouter, Body
 from src.api.dependencies import DBDep
 from src.database import async_session_maker
 from src.repositories.rooms import RoomsRepository
+from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest, RoomPatch
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
@@ -33,12 +34,14 @@ async def get_hotels(db: DBDep, hotel_id: int, room_id: int):
 @router.post("/{hotel_id}/rooms",
              summary="Добавление Комнаты",
              description="<h1>Тут мы добавляем комнату</h1>", )
-async def create_room(hotel_id: int, room_data: RoomAddRequest = Body()):
-    async with async_session_maker() as session:
-        _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-        new_room = await RoomsRepository(session).add(_room_data)
-        await session.commit()
-    return {"status": "OK", "data": new_room}
+async def create_room(hotel_id: int, db: DBDep, room_data: RoomAddRequest = Body()):
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
+    room = await db.rooms.add(_room_data)
+
+    rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_data)
+    await db.commit()
+    return {"status": "OK", "data": room}
 
 
 @router.put("/{hotel_id}/rooms/{room_id}",

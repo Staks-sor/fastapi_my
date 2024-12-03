@@ -1,9 +1,12 @@
 from datetime import date
 
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
 from src.models.rooms import RoomsORM  # Модель, представляющая таблицу с комнатами (rooms)
 from src.repositories.base import BaseRepository  # Базовый репозиторий, обеспечивающий базовые операции с БД
 from src.repositories.utils import rooms_ids_for_booking
-from src.schemas.rooms import Room  # Pydantic-схема для комнат
+from src.schemas.rooms import Room, RoomWithRels  # Pydantic-схема для комнат
 
 
 # Репозиторий для работы с комнатами (rooms)
@@ -22,6 +25,10 @@ class RoomsRepository(BaseRepository):
         # Подзапрос для подсчета количества занятых комнат по ID комнаты
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id,)
 
-        # Используем базовый метод get_filtered для фильтрации комнат
-        # Здесь `RoomsORM.id.in_(rooms_ids_to_get)` добавляет условие на ID комнат
-        return await self.get_filtered(RoomsORM.id.in_(rooms_ids_to_get))
+        query = (
+            select(self.model)
+            .options(joinedload(self.model.facilities))
+            .filter(RoomsORM.id.in_(rooms_ids_to_get))
+        )
+        result = await self.session.execute(query)
+        return [RoomWithRels.model_validate(model) for model in result.unique().scalars().all()]

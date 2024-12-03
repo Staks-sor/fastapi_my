@@ -25,8 +25,8 @@ async def get_rooms(
 
 
 @router.get("/{hotel_id}/rooms/{room_id}",
-            summary="Получение одного отеля",
-            description="<h1>Тут мы получаем один отель</h1>", )
+            summary="Получение одной комнаты",
+            description="<h1>Тут мы получаем одну комнату</h1>", )
 async def get_hotels(db: DBDep, hotel_id: int, room_id: int):
     return await db.rooms.get_one_or_none(id=room_id, hotel_id=hotel_id)
 
@@ -75,7 +75,6 @@ async def partially_edit_room(
 
 
 ):
-
     _room_data_dict = room_data.model_dump(exclude_unset=True)
     _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
     await db.rooms.edit(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)

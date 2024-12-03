@@ -75,7 +75,6 @@ async def partially_edit_room(
 
 ):
     _room_data = RoomPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
-
     await db.rooms.edit(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)
     await db.commit()
     # Возвращаем статус OK и обновленные данные

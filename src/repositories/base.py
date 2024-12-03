@@ -1,6 +1,10 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.orm import joinedload
+
+from src.models.rooms import RoomsORM
+from src.schemas.rooms import RoomWithRels
 
 
 class BaseRepository:
@@ -23,12 +27,21 @@ class BaseRepository:
         return await self.get_filtered()
 
     async def get_one_or_none(self, **filter_by):
-        query = select(self.model).filter_by(**filter_by)
+        query = (
+            select(self.model)
+            .options(joinedload(self.model.facilities))  # Для загрузки связанных данных
+            .filter_by(**filter_by)
+        )
         result = await self.session.execute(query)
-        model = result.scalars().one_or_none()
+
+        # Применяем unique() перед scalars()
+        model = result.unique().scalars().one_or_none()
+
         if model is None:
             return None
-        return self.schema.model_validate(model)
+
+        # Возвращаем результат с применением модели
+        return RoomWithRels.model_validate(model)
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)

@@ -17,7 +17,7 @@ class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesOrm
     schema = RoomsFacility
 
-    async def set_room_facilities(self, room_id: int, facilities_ids: list[int]):
+    async def set_room_facilities(self, room_id: int, facilities_ids: list[int]) -> None:
         get_current_facilities_ids_query = (
             select(self.model.facility_id)
             .filter_by(room_id=room_id)

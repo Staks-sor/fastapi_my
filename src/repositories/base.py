@@ -27,21 +27,27 @@ class BaseRepository:
         return await self.get_filtered()
 
     async def get_one_or_none(self, **filter_by):
-        query = (
-            select(self.model)
-            .options(joinedload(self.model.facilities))  # Для загрузки связанных данных
-            .filter_by(**filter_by)
-        )
+        query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-
-        # Применяем unique() перед scalars()
-        model = result.unique().scalars().one_or_none()
-
+        model = result.scalars().one_or_none()
         if model is None:
             return None
-
-        # Возвращаем результат с применением модели
-        return RoomWithRels.model_validate(model)
+        return self.schema.model_validate(model)
+        # query = (
+        #     select(self.model)
+        #     .options(joinedload(self.model.facilities))  # Для загрузки связанных данных
+        #     .filter_by(**filter_by)
+        # )
+        # result = await self.session.execute(query)
+        #
+        # # Применяем unique() перед scalars()
+        # model = result.unique().scalars().one_or_none()
+        #
+        # if model is None:
+        #     return None
+        #
+        # # Возвращаем результат с применением модели
+        # return RoomWithRels.model_validate(model)
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)

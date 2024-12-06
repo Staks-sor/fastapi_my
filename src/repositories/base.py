@@ -1,15 +1,13 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
-from sqlalchemy.orm import joinedload
 
-from src.models.rooms import RoomsORM
-from src.schemas.rooms import RoomWithRels
+from src.repositories.mappers.base import DataMapper
 
 
 class BaseRepository:
     model = None
-    schema: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -21,7 +19,7 @@ class BaseRepository:
             .filter_by(**filter_by)
         )
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
@@ -32,28 +30,13 @@ class BaseRepository:
         model = result.scalars().one_or_none()
         if model is None:
             return None
-        return self.schema.model_validate(model)
-        # query = (
-        #     select(self.model)
-        #     .options(joinedload(self.model.facilities))  # Для загрузки связанных данных
-        #     .filter_by(**filter_by)
-        # )
-        # result = await self.session.execute(query)
-        #
-        # # Применяем unique() перед scalars()
-        # model = result.unique().scalars().one_or_none()
-        #
-        # if model is None:
-        #     return None
-        #
-        # # Возвращаем результат с применением модели
-        # return RoomWithRels.model_validate(model)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.schema.model_validate(model)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add_bulk(self, data: list[BaseModel]):
         add_data_stmt = insert(self.model).values([item.model_dump() for item in data])
